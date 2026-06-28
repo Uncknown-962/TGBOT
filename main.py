@@ -82,7 +82,27 @@ async def main():
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
 
-    try:
+     try:
+        # Фоновая задача, которая пингует сервер каждые 10 минут и не дает ему уснуть
+        async def keep_alive():
+            import aiohttp
+            # ВНИМАНИЕ: Замените URL ниже на реальную ссылку вашего бота из панели Render!
+            # Она находится в левом верхнем углу страницы Render (выглядит как https://...onrender.com)
+            url = "https://onrender.com" 
+            
+            await asyncio.sleep(30) # Небольшая пауза при самом первом запуске
+            while True:
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(url) as resp:
+                            log.debug(f"Keep-alive ping sent to {url}, status: {resp.status}")
+                except Exception as e:
+                    log.warning(f"Keep-alive ping failed: {e}")
+                await asyncio.sleep(600) # Повторяем каждые 10 минут (600 секунд)
+
+        # Запускаем пинговалку в фоне
+        asyncio.create_task(keep_alive())
+
         log.info("Starting polling...")
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
     except Exception as e:
