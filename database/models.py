@@ -21,9 +21,12 @@ class User(Base):
     is_bot: Mapped[bool] = mapped_column(Boolean, default=False)
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-    last_bonus: Mapped[Optional[datetime]] = mapped_column(DateTime, default=None)
+    
+    # Добавлено DateTime(timezone=True) для корректной работы с PostgreSQL
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    last_bonus: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), default=None)
+    
     title: Mapped[str] = mapped_column(String(50), default="")
     referrer_id: Mapped[Optional[int]] = mapped_column(BigInteger, default=None)
 
@@ -43,7 +46,9 @@ class Message(Base):
     message_id: Mapped[int] = mapped_column(BigInteger)
     text: Mapped[Optional[str]] = mapped_column(Text)
     message_type: Mapped[str] = mapped_column(String(50))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Добавлено DateTime(timezone=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user: Mapped["User"] = relationship(back_populates="messages")
 
@@ -58,7 +63,9 @@ class UserStats(Base):
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('users.id', ondelete='CASCADE'), unique=True)
     total_messages: Mapped[int] = mapped_column(Integer, default=0)
     total_commands: Mapped[int] = mapped_column(Integer, default=0)
-    last_activity: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Добавлено DateTime(timezone=True)
+    last_activity: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user: Mapped["User"] = relationship(back_populates="user_stats")
 
@@ -72,7 +79,9 @@ class Note(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('users.id', ondelete='CASCADE'))
     text: Mapped[str] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Добавлено DateTime(timezone=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user: Mapped["User"] = relationship(back_populates="notes")
 
