@@ -60,11 +60,16 @@ async def main():
         log.error(f"Configuration error: {e}")
         sys.exit(1)
 
-    bot = Bot(
-        token=settings.BOT_TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-    )
+    # Инициализация бота внутри функции main с правильными отступами
+    if os.path.exists("/data") or os.environ.get("RENDER"):
+        # Если бот на сервере (Hugging Face или Render)
+        session = AiohttpSession(proxy="http://159.223.181.161:3128") if not os.environ.get("RENDER") else None
+        bot = Bot(token=settings.BOT_TOKEN, session=session)
+    else:
+        # Локально на вашем компьютере работаем напрямую без прокси
+        bot = Bot(token=settings.BOT_TOKEN)
 
+    # Инициализация диспетчера и мидлварей
     dp = Dispatcher()
 
     dp.message.middleware(DatabaseMiddleware())
@@ -82,25 +87,24 @@ async def main():
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
 
-     try:
-        # Фоновая задача, которая пингует сервер каждые 10 минут и не дает ему уснуть
+    try:
+        # Фоновое удержание сервера Render от засыпания
         async def keep_alive():
             import aiohttp
-            # ВНИМАНИЕ: Замените URL ниже на реальную ссылку вашего бота из панели Render!
-            # Она находится в левом верхнем углу страницы Render (выглядит как https://...onrender.com)
-            url = "https://tgbot-ikbm.onrender.com" 
+            # ОБЯЗАТЕЛЬНО: Замените URL ниже на реальную ссылку вашего бота из Render!
+            url = "https://onrender.com" 
             
-            await asyncio.sleep(30) # Небольшая пауза при самом первом запуске
+            await asyncio.sleep(30)
             while True:
                 try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(url) as resp:
+                    async with aiohttp.ClientSession() as session_http:
+                        async with session_http.get(url) as resp:
                             log.debug(f"Keep-alive ping sent to {url}, status: {resp.status}")
                 except Exception as e:
                     log.warning(f"Keep-alive ping failed: {e}")
-                await asyncio.sleep(600) # Повторяем каждые 10 минут (600 секунд)
+                await asyncio.sleep(600)
 
-        # Запускаем пинговалку в фоне
+        # Запуск фонового будильника
         asyncio.create_task(keep_alive())
 
         log.info("Starting polling...")
