@@ -21,7 +21,8 @@ async def cmd_stats(message: Message):
         await message.answer("❌ Статистика не найдена")
         return
 
-    days_active = (datetime.now(timezone.utc).replace(tzinfo=None) - user.created_at).days or 1
+    # ИСПРАВЛЕНО: убрали .replace(tzinfo=None). Теперь оба объекта времени содержат timezone.utc
+    days_active = (datetime.now(timezone.utc) - user.created_at).days or 1
 
     stats_text = f"""
 📊 <b>Ваша статистика</b>
@@ -49,7 +50,8 @@ async def cmd_stats(message: Message):
 
 @router.message(Command("top"))
 async def cmd_top(message: Message):
-    user_id = message.chat.id
+    # ИСПРАВЛЕНО: берем id пользователя, а не чата, чтобы статистика инкрементировалась без ошибок
+    user_id = message.from_user.id
     await db.increment_commands(user_id)
     
     top_coins = await db.get_top_users_by_coins(5)
