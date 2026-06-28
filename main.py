@@ -88,7 +88,7 @@ async def main():
             import aiohttp
             # ВНИМАНИЕ: Замените URL ниже на реальную ссылку вашего бота из панели Render!
             # Она находится в левом верхнем углу страницы Render (выглядит как https://...onrender.com)
-            url = "https://onrender.com" 
+            url = "https://tgbot-ikbm.onrender.com" 
             
             await asyncio.sleep(30) # Небольшая пауза при самом первом запуске
             while True:
