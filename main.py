@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -12,10 +13,8 @@ from bot.middlewares.admin import AdminMiddleware
 from bot.middlewares.throttling import ThrottlingMiddleware
 from bot.utils.logger import log
 
-
 async def on_startup(bot: Bot):
     log.info("Bot is starting...")
-
     try:
         await db.create_tables()
         log.info("Database tables created successfully")
@@ -36,10 +35,8 @@ async def on_startup(bot: Bot):
         except Exception as e:
             log.warning(f"Failed to notify admin {admin_id}: {e}")
 
-
 async def on_shutdown(bot: Bot):
     log.info("Bot is shutting down...")
-
     for admin_id in settings.ADMIN_IDS:
         try:
             await bot.send_message(
@@ -49,9 +46,7 @@ async def on_shutdown(bot: Bot):
             )
         except Exception:
             pass
-
     log.info("Bot stopped")
-
 
 async def main():
     try:
@@ -60,14 +55,8 @@ async def main():
         log.error(f"Configuration error: {e}")
         sys.exit(1)
 
-    # Инициализация бота внутри функции main с правильными отступами
-    if os.path.exists("/data") or os.environ.get("RENDER"):
-        # Если бот на сервере (Hugging Face или Render)
-        session = AiohttpSession(proxy="http://159.223.181.161:3128") if not os.environ.get("RENDER") else None
-        bot = Bot(token=settings.BOT_TOKEN, session=session)
-    else:
-        # Локально на вашем компьютере работаем напрямую без прокси
-        bot = Bot(token=settings.BOT_TOKEN)
+    # Создаем бота напрямую без прокси
+    bot = Bot(token=settings.BOT_TOKEN)
 
     # Инициализация диспетчера и мидлварей
     dp = Dispatcher()
@@ -91,8 +80,8 @@ async def main():
         # Фоновое удержание сервера Render от засыпания
         async def keep_alive():
             import aiohttp
-            # ОБЯЗАТЕЛЬНО: Замените URL ниже на реальную ссылку вашего бота из Render!
-            url = "https://onrender.com" 
+            # Замените на вашу ссылку из панели Render
+            url = "https://tgbot-ikbm.onrender.com" 
             
             await asyncio.sleep(30)
             while True:
@@ -114,7 +103,6 @@ async def main():
         raise
     finally:
         await bot.session.close()
-
 
 if __name__ == "__main__":
     try:
